@@ -118,7 +118,7 @@ jobs:
           command: |
             exit $(cat sast-output.json | jq .total_count.sec)
       - store_artifacts:
-          path: outputs/sast/sast-stored_artifact.tar.z
+          path: outputs/sast/
 
 workflows:
   build-and-package:
