@@ -1,22 +1,41 @@
 version: 2.1
-# NOTE(Daniel): idea to script for web browser based applications.
-# service: test-service
 
-# functions:
-#   crudUser:
-#     handler:
-#       - createUserHandle: bin/handlers/createUser # Create User from Database
-#       - updateUserHandle: bin/handlers/updateUser # Update User from Database
-#     events:
-#       - http:
-#       - path: users/create
-#           users/update
-#         description: "events $=> \"http < users/create \n users/update\""
-
-#orbs:
-  #browser-tools: circleci/browser-tools@1.1.0
+commands:
+  install_deps:
+    steps:
+      - run:
+          name: Install Dependencies
+          command: |
+            npm ci --prefix src/
 
 jobs:
+  build:
+    docker:
+      - image: cimg/node:lts
+        auth:
+          username: thenewoldmodel # NOTE(Daniel): how do I hide these values?
+          password: 4stig-FireRed_1480 # ... is there a formatting pattern to hide this?
+    environment:
+      ENV: CI
+
+    working_directory: ~/assignment-1-S3729065
+
+    steps:
+      - checkout
+      - install_deps
+      #- browser-tools/install-firefox
+      #- browser-tools/install-geckodriver #NOTE(Daniel): install browsers for testing.
+
+  pack:
+    docker:
+      - image: cimg/node:lts # using cimg/node:15.11.0 as stated in the docs, documented as the preferred way.
+    steps:
+      - run:
+          name: compile
+          command: |
+            npm i -g npm@latest
+            npm build ./assignment-1-S3729065
+
   integration-test:
     docker:
       - image: cimg/node:lts # using cimg/node:15.11.0 as stated in the docs, documented as the preferred way.
@@ -40,67 +59,15 @@ jobs:
           command: |
             bash < (curl -s https://codecov.io/bash)
 
-      - store_test_result:
-          path: test-output
+      - store_test_results:
+          path: outputs/tests/
 
-  build:
-    docker:
-      - image: cimg/node:lts
-          ubuntu-2004:202010-01
-          #circleci/node:lts
-        auth:
-          username: thenewoldmodel # NOTE(Daniel): how do I hide these values?
-          password: 4stig-FireRed_1480 # ... is there a formatting pattern to hide this?
-    runtime: nodejs
-    environment:
-      ENV: CI
-      NODE_ENV: production
-
-    working_directory: ~/assignment-1-S3729065
-    description: "working_directory: `~/assignment-1-S3729065` $=> also is root folder"
-
-    steps:
-      - checkout
-      - install_dependencies
-      #- browser-tools/install-firefox
-      #- browser-tools/install-geckodriver #NOTE(Daniel): install browsers for testing.
-      - run:
-            node --version
-    name: install dependencies
-    command: |
-      npm pack
-      - store_artifacts:
-          path: ./node-todo-1.0.0.tgz
-
-  pack:
-    docker:
-      - image: cimg/node:lts # using cimg/node:15.11.0 as stated in the docs, documented as the preferred way.
-    steps:
-      - run:
-          name: compile
-          command: |
-            npm i -g npm@latest
-            npm build ./assignment-1-S3729065
-
-      - branches:
-          pre-release
-      - filters:
-          branches:
-            only:
-              - master
-
-    requires:
-      - build
-
-  sast:
+  scan-secure:
     docker:
       - image: cimg/node:lts
     steps:
       - checkout
-      - install_dependencies
-
-      - requires:
-          ci-build
+      - install_deps
 
       - run:
           name: install node scan
@@ -121,12 +88,10 @@ jobs:
           path: outputs/sast/
 
 workflows:
-  build-and-package:
+  build-pack-deploy:
     jobs:
       - build
-      - sast
-      - integration-test:
-          requires:
-            - ci-build
-            - sast
       - pack
+      - integration-test
+      - scan-secure
+
