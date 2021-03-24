@@ -7,6 +7,7 @@ commands:
           name: Install Dependencies
           command: |
             npm ci --prefix src/
+            npm run start
 
 jobs:
   build:
@@ -36,7 +37,7 @@ jobs:
             npm i -g npm@latest
             npm build ./assignment-1-S3729065
 
-  integration-test:
+  unit-test:
     docker:
       - image: cimg/node:lts # using cimg/node:15.11.0 as stated in the docs, documented as the preferred way.
     
@@ -45,14 +46,22 @@ jobs:
     
     steps:
       - run:
-          name: run unit test
+          name: unit test
           command: |
-            npm run unit-test
-
+            npm run test-unit
       - run:
           name: linting
           command: |
-            npm run lint
+            npm run test-lint
+
+      - run:
+          name: integration test
+          command: |
+            npm run test-integration
+      - run:
+          name: e2e test
+          command: |
+            npm run test-e2e
 
       - run:
           name: validate code coverage
@@ -92,6 +101,6 @@ workflows:
     jobs:
       - build
       - pack
-      - integration-test
+      - unit-test
       - scan-secure
 
