@@ -37,12 +37,12 @@ jobs:
             npm i -g npm@latest
             npm build ./assignment-1-S3729065
 
-  unit-test:
+  ci-test:
     docker:
       - image: cimg/node:lts # using cimg/node:15.11.0 as stated in the docs, documented as the preferred way.
     
     environment:
-      JEST_UNIT_OUTPUT_DIR: test-output
+      JEST_JUNIT_OUTPUT_DIR: test-output
     
     steps:
       - run:
@@ -69,7 +69,21 @@ jobs:
             bash < (curl -s https://codecov.io/bash)
 
       - store_test_results:
-          path: outputs/tests/
+          path: outputs/tests/units/
+
+  integr-test:
+      docker:
+        - image: cimg/node:lts
+        - image: mongo:4.0
+      environment:
+        APP_PORT: 8080
+      steps:
+        - run:
+            name: integration test
+            command: |
+              npm run test-integration
+        - store_test_results:
+            path: outputs/tests/integs/ 
 
   scan-secure:
     docker:
@@ -87,7 +101,7 @@ jobs:
       - run:
           name: execute node scan
           command: |
-            nodejsscan -d . -o outputs/sast/nodejs-scan-report.json
+            nodejsscan -d ./ -o outputs/sast/nodejs-scan-report.json
 
       - run:
           name: parse report
@@ -101,6 +115,7 @@ workflows:
     jobs:
       - build
       - pack
-      - unit-test
+      - ci-test
+      - integr-test
       - scan-secure
 
