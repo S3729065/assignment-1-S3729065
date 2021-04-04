@@ -81,16 +81,16 @@ jobs:
   #     environment:
   #       APP_PORT: 8080
   #     steps:
-          # - run:
-          #     name: Start Test Service
-          #     command: |
-          #       npm run start
-  #       - run:
-  #           name: Integration Test
-  #           command: |
-  #             npm run test-integration
-  #       - store_test_results:
-  #           path: integrity-results
+  #         - run:
+  #             name: Start Test Service
+  #             command: |
+  #               npm run start
+  #         - run:
+  #             name: Integration Test
+  #             command: |
+  #               npm run test-integration
+  #         - store_test_results:
+  #             path: integrity-results
 
   # e2e-test:
   #   docker:
@@ -103,52 +103,52 @@ jobs:
   #   - store_test_results:
   #       path: e2e-results
 
-  # linting:
-  #   docker:
-  #     - image: cimg/node:lts
-  #   steps:
-  #     - run:
-  #         name: Linting
-  #         command: |
-  #           npm run test-lint
-  #     - store_test_results:
-  #         path: linting-results
+  linting:
+    docker:
+      - image: cimg/node:lts
+    steps:
+      - run:
+          name: Linting
+          command: |
+            npm run test-lint
+      - store_test_results:
+          path: linting-results
 
-  # code-coverage:
-  #   docker:
-  #     - image: cimg/node:lts
-  #   steps:
-  #     - run:
-  #         name: Validate Code Coverage
-  #         command: |
-  #           bash < (curl -s https://codecov.io/bash)
-  #     - store_test_results:
-  #         path: code-coverage-results
+  code-coverage:
+    docker:
+      - image: cimg/node:lts
+    steps:
+      - run:
+          name: Validate Code Coverage
+          command: |
+            bash < (curl -s https://codecov.io/bash)
+      - store_test_results:
+          path: code-coverage-results
 
-  # scan-secure:
-  #   docker:
-  #     - image: cimg/node:lts
-  #   steps:
-  #     - checkout
-  #     - install_deps
+  scan-secure:
+    docker:
+      - image: cimg/node:lts
+    steps:
+      - checkout
+      - install_deps
 
-  #     - run:
-  #         name: Install Node Scan
-  #         command: |
-  #           sudo apt update
-  #           sudo apt install python3-pip
-  #           pip3 install nodejsscan
-  #     - run:
-  #         name: Execute Node Scan
-  #         command: |
-  #           nodejsscan -d ./ -o outputs/sast/nodejs-scan-report.json
+      - run:
+          name: Install Node Scan
+          command: |
+            sudo apt update
+            sudo apt install python3-pip
+            pip3 install nodejsscan
+      - run:
+          name: Execute Node Scan
+          command: |
+            nodejsscan -d ./ -o outputs/sast/nodejs-scan-report.json
 
-  #     - run:
-  #         name: Parse Report
-  #         command: |
-  #           exit $(cat sast-output.json | jq .total_count.sec)
-  #     - store_artifacts:
-  #         path: outputs/sast/
+      - run:
+          name: Parse Report
+          command: |
+            exit $(cat sast-output.json | jq .total_count.sec)
+      - store_artifacts:
+          path: outputs/sast/
 
 workflows:
   build-pack-deploy:
@@ -158,7 +158,7 @@ workflows:
       - jest-test
       # - integrity-test
       # - e2e-test
-      # - linting
-      # - code-coverage
-      # - scan-secure
+      - linting
+      - code-coverage
+      - scan-secure
 
