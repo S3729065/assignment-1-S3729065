@@ -8,6 +8,16 @@ commands:
           command: |
             npm ci --prefix src/
 
+      - run:
+          name: Install Test Modules
+          command: |
+            npm i -D jest-junit
+
+      - run:
+          name: Make Directory for Jest Junit
+          command: |
+            mkdir -p jest-results
+
 jobs:
   build:
     docker:
@@ -45,7 +55,7 @@ jobs:
       - image: cimg/node:lts # using cimg/node:15.11.0 as stated in the docs, documented as the preferred way.
     
     environment:
-      JEST_JUNIT_OUTPUT_DIR: test-output
+      JEST_JUNIT_OUTPUT_DIR: jest-results
     
     steps:
       - run:
@@ -69,7 +79,7 @@ jobs:
   #       APP_PORT: 8080
   #     steps:
   #       - run:
-  #           name: integration test
+  #           name: Integration Test
   #           command: |
   #             npm run test-integration
   #       - store_test_results:
@@ -80,7 +90,7 @@ jobs:
   #     - image: cimg/node:lts
   #   steps:
   #   - run:
-  #       name: e2e test
+  #       name: E2E Test
   #       command: |
   #         npm run test-e2e
   #   - store_test_results:
@@ -91,7 +101,7 @@ jobs:
   #     - image: cimg/node:lts
   #   steps:
   #     - run:
-  #         name: linting
+  #         name: Linting
   #         command: |
   #           npm run test-lint
   #     - store_test_results:
@@ -102,7 +112,7 @@ jobs:
   #     - image: cimg/node:lts
   #   steps:
   #     - run:
-  #         name: validate code coverage
+  #         name: Validate Code Coverage
   #         command: |
   #           bash < (curl -s https://codecov.io/bash)
   #     - store_test_results:
@@ -116,18 +126,18 @@ jobs:
   #     - install_deps
 
   #     - run:
-  #         name: install node scan
+  #         name: Install Node Scan
   #         command: |
   #           sudo apt update
   #           sudo apt install python3-pip
   #           pip3 install nodejsscan
   #     - run:
-  #         name: execute node scan
+  #         name: Execute Node Scan
   #         command: |
   #           nodejsscan -d ./ -o outputs/sast/nodejs-scan-report.json
 
   #     - run:
-  #         name: parse report
+  #         name: Parse Report
   #         command: |
   #           exit $(cat sast-output.json | jq .total_count.sec)
   #     - store_artifacts:
