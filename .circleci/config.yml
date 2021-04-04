@@ -26,7 +26,7 @@ jobs:
       - run:
           name: compile
           command: |
-            npm build ./assignment-1-S3729065
+            npm build ./
       #- browser-tools/install-firefox
       #- browser-tools/install-geckodriver #NOTE(Daniel): install browsers for testing.
 
@@ -38,7 +38,7 @@ jobs:
           name: compile
           command: |
             npm i --save npm@latest
-            npm build ./assignment-1-S3729065
+            npm build ./
 
   jest-test:
     docker:
