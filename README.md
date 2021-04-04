@@ -78,3 +78,14 @@ chmod +x scripts/e2e-ci.sh
 
 
 ###### This project is licensed under the MIT Open Source License
+
+###### Documentation --- Daniel Surla (S3729065)
+
+# Jobs: separated and categorized
+Code for this is written to be in what kind of tests they are.
+	These tests also have their own test result directory under: "tests/[name of test-type]/results/".
+
+With the command necessary for the use of Docker with CircleCI: docker-compose up -d
+	This has been placed within the steps > commands of the [integration-test] job.
+
+The 'pre-release' branch has all the different test-types and jobs required in the workflows.
