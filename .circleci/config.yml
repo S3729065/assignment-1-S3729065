@@ -7,7 +7,6 @@ commands:
           name: Install Dependencies
           command: |
             npm ci --prefix src/
-            npm i --save npm@latest
 
 jobs:
   build:
@@ -31,15 +30,15 @@ jobs:
       #- browser-tools/install-firefox
       #- browser-tools/install-geckodriver #NOTE(Daniel): install browsers for testing.
 
-  # pack:
-  #   docker:
-  #     - image: cimg/node:lts # using cimg/node:15.11.0 as stated in the docs, documented as the preferred way.
-  #   steps:
-  #     - run:
-  #         name: compile
-  #         command: |
-  #           npm i --save npm@latest
-  #           npm build ./assignment-1-S3729065
+  pack:
+    docker:
+      - image: cimg/node:lts # using cimg/node:15.11.0 as stated in the docs, documented as the preferred way.
+    steps:
+      - run:
+          name: compile
+          command: |
+            npm i --save npm@latest
+            npm build ./assignment-1-S3729065
 
   jest-test:
     docker:
