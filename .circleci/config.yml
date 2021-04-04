@@ -137,7 +137,7 @@ workflows:
   build-pack-deploy:
     jobs:
       - build
-      # - pack
+      - pack
       - jest-test
       - integrity-test
       - e2e-test
