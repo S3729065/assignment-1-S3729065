@@ -18,12 +18,34 @@ commands:
           command: |
             mkdir -p jest-results
 
+  image_install:
+    steps:
+      - run:
+          name: Install Docker Compose
+          command: |
+            curl -L https://github.com/docker/compose/releases/download/1.25.3/docker-compose-`uname -s`-`uname -m` > ~/docker-compose
+            chmod +x ~/docker-compose
+            sudo mv ~/docker-compose /usr/local/bin/docker-compose
+
   compose_image:
     steps:
+      - run:
+          name: Docker Compose Build
+          command: |
+            docker-compose build
+
       - run:
           name: Docker Compose Up
           command: |
             docker-compose up -d
+
+      - run:
+          name: Verify Docker Compose
+          command: |
+            set -x
+            docker-compose up -d
+            docker run --network container:contacts \
+              appropriate/curl --retry 10 --retry-delay 1 --retry-connrefused http://localhost:8080/contacts/test
 
 jobs:
   build:
@@ -40,6 +62,7 @@ jobs:
     steps:
       - checkout
       - install_depends
+      - image_install
       - compose_image
       - run:
           name: compile
@@ -57,13 +80,15 @@ jobs:
           command: |
             npm i --save npm@latest
             npm build ./
+      - store_artifacts:
+          path: ./simpletodoapp-1.0.0.tgz
 
-  jest-test:
+  unit-test:
     docker:
       - image: cimg/node:lts # using cimg/node:15.11.0 as stated in the docs, documented as the preferred way.
     
     environment:
-      JEST_JUNIT_OUTPUT_DIR: jest-results
+      JEST_JUNIT_OUTPUT_DIR: test/unit
     
     steps:
       - run:
@@ -72,9 +97,9 @@ jobs:
             npm run test-unit
 
       - store_test_results:
-          path: jest-results
+          path: test/unit
 
-  # integrity-test:
+  # integration-test:
   #     docker:
   #       - image: cimg/node:lts
   #       - image: mongo:4.0
@@ -90,7 +115,7 @@ jobs:
   #             command: |
   #               npm run test-integration
   #         - store_test_results:
-  #             path: integrity-results
+  #             path: test/integration
 
   # e2e-test:
   #   docker:
@@ -100,8 +125,6 @@ jobs:
   #       name: E2E Test
   #       command: |
   #         npm run test-e2e
-  #   - store_test_results:
-  #       path: e2e-results
 
   linting:
     docker:
@@ -111,8 +134,6 @@ jobs:
           name: Linting
           command: |
             npm run test-lint
-      - store_test_results:
-          path: linting-results
 
   code-coverage:
     docker:
@@ -122,8 +143,6 @@ jobs:
           name: Validate Code Coverage
           command: |
             bash < (curl -s https://codecov.io/bash)
-      - store_test_results:
-          path: code-coverage-results
 
   scan-secure:
     docker:
@@ -148,7 +167,7 @@ jobs:
           command: |
             exit $(cat sast-output.json | jq .total_count.sec)
       - store_artifacts:
-          path: outputs/sast/
+          path: ./sast-parse-report.tar.z
 
 workflows:
   build-pack-deploy:
