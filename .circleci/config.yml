@@ -31,6 +31,12 @@ jobs:
     steps:
       - checkout
       - install_dependencies
+
+      - run:
+          name: Start Test Service
+          command: |
+            npm run start
+
       - run:
           name: Compile
           command: |
