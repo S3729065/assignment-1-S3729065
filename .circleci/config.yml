@@ -32,7 +32,7 @@ jobs:
       - run:
           name: Compile
           command: |
-            npm i -g npm@latest
+            npm i npm@latest
 
       - store_artifacts:
           path: simpletodoapp-1.0.0.tgz
