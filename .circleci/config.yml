@@ -63,5 +63,7 @@ workflows:
           requires:
             - build
 
-      - jest
+      - jest:
+          requires:
+            - build
         
