@@ -24,6 +24,16 @@ jobs:
           command: |
             npm build
 
+  pack:
+    docker:
+      - image: circleci/node:lts
+
+    steps:
+      - run:
+          name: Compile
+          command: |
+            npm i -g npm@latest
+
 workflows:
   build-pack-deploy:
     jobs:
