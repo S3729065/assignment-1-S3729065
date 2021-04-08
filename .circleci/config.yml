@@ -1,7 +1,7 @@
 version: 2.1
 
 commands:
-  install_deps:
+  install_dependencies:
     steps:
       - run:
           name: Install Dependencies
@@ -11,60 +11,52 @@ commands:
 jobs:
   build:
     docker:
-      - image: cimg/node:lts
+      - image: circleci/node:lts
         auth:
-          username: thenewoldmodel # NOTE(Daniel): how do I hide these values?
-          password: 4stig-FireRed_1480 # ... is there a formatting pattern to hide this?
-    environment:
-      ENV: CI
-
-    working_directory: ~/assignment-1-S3729065
-
+          username: $DOCKERHUB_USERNAME
+          password: $DOCKERHUB_PASSWORD
     steps:
       - checkout
-      - install_deps
+      - install_dependencies
+
       - run:
-          name: compile
+          name: Build and Compile
           command: |
-            npm build ./
-      #- browser-tools/install-firefox
-      #- browser-tools/install-geckodriver #NOTE(Daniel): install browsers for testing.
+            npm build
 
   pack:
     docker:
-      - image: cimg/node:lts # using cimg/node:15.11.0 as stated in the docs, documented as the preferred way.
+      - image: circleci/node:lts
+
     steps:
       - run:
-          name: compile
+          name: Compile
           command: |
-            npm i --save npm@latest
-            npm build ./
+            npm i npm@latest
 
-  jest-test:
+      - store_artifacts:
+          path: simpletodoapp-1.0.0.tgz
+
+  jest:
     docker:
-      - image: cimg/node:lts # using cimg/node:15.11.0 as stated in the docs, documented as the preferred way.
-    
+      - image: circleci/node:lts
+
     environment:
-      JEST_JUNIT_OUTPUT_DIR: test-output
-    
+      JEST_JUNIT_OUTPUT_DIR: test/unit
+
     steps:
       - run:
-          name: start test service
-          command: |
-            npm run start
-
-      - run:
-          name: unit test
+          name: Unit Test with Jest JUnit
           command: |
             npm run test-unit
-
-      - store_test_results:
-          path: jest-results
 
 workflows:
   build-pack-deploy:
     jobs:
       - build
-      - pack
-      - jest-test
+      - pack:
+          requires:
+            - build
 
+      - jest
+        
