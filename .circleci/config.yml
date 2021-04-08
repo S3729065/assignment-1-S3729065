@@ -50,10 +50,13 @@ jobs:
       - run:
           name: Unit Test with Jest JUnit
           command: |
-            npm run jest --ci test/unit
+            npm run test-unit
+
+      - store_test_results:
+          path: test/unit
 
 workflows:
-  build-pack-deploy:
+  buildNpack2jest:
     jobs:
       - build
       - pack:
