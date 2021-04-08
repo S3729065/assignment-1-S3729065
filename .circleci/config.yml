@@ -1,5 +1,13 @@
 version: 2.1
 
+commands:
+  install_dependencies:
+    steps:
+      - run:
+          name: Install Dependencies
+          command: |
+            npm ci --prefix src/
+
 jobs:
   build:
     docker:
