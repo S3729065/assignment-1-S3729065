@@ -71,14 +71,14 @@ jobs:
       - run:
           name: Execute Node Scan
           command: |
-            nodejsscan -d ./ -o outputs/sast/nodejs-scan-report.json
+            nodejsscan -o nodejsscan-report.json
 
       - run:
           name: Parse Report
           command: |
             exit $(cat sast-output.json | jq .total_count.sec)
       - store_artifacts:
-          path: ./sast-parse-report.tar.z
+          path: ./sast-parse-report.tgz
 
 workflows:
   build-pack-deploy:
