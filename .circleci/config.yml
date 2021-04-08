@@ -57,7 +57,7 @@ jobs:
     environment:
       ENV: CI
 
-    working_directory: ~/assignment-1-S3729065
+    # working_directory: ~/assignment-1-S3729065
 
     steps:
       - checkout
