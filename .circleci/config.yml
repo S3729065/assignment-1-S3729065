@@ -41,3 +41,7 @@ workflows:
   build-pack-deploy:
     jobs:
       - build
+      - pack:
+          requires:
+            - build
+        
