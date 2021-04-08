@@ -34,6 +34,9 @@ jobs:
           command: |
             npm i -g npm@latest
 
+      - store_artifacts:
+          path: simpletodoapp-1.0.0.tgz
+
 workflows:
   build-pack-deploy:
     jobs:
