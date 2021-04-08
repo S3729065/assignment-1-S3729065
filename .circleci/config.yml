@@ -55,7 +55,7 @@ jobs:
           path: test/integration
 
 workflows:
-  buildNpack2jest:
+  integration:
     jobs:
       - build
       - pack:
