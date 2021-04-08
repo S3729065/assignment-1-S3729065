@@ -45,8 +45,6 @@ jobs:
       JEST_JUNIT_OUTPUT_DIR: test/unit
 
     steps:
-      - checkout
-      - install_dependencies
       - run:
           name: Unit Test with Jest JUnit
           command: |
