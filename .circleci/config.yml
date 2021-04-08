@@ -174,7 +174,7 @@ workflows:
     jobs:
       - build
       - pack
-      - jest-test
+      - unit-test
       # - integrity-test
       # - e2e-test
       - linting
