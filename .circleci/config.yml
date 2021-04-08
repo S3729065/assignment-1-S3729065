@@ -19,6 +19,11 @@ jobs:
       - checkout
       - install_dependencies
 
+      - run:
+          name: Build and Compile
+          command: |
+            npm build
+
 workflows:
   build-pack-deploy:
     jobs:
