@@ -17,6 +17,7 @@ jobs:
           password: $DOCKERHUB_PASSWORD
     steps:
       - checkout
+      - install_dependencies
 
 workflows:
   build-pack-deploy:
