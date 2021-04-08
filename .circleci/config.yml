@@ -1,7 +1,7 @@
 version: 2.1
 
 commands:
-  install_deps:
+  install_dependencies:
     steps:
       - run:
           name: Install Dependencies
@@ -11,55 +11,58 @@ commands:
 jobs:
   build:
     docker:
-      - image: cimg/node:lts
+      - image: circleci/node:lts
         auth:
-          username: thenewoldmodel # NOTE(Daniel): how do I hide these values?
-          password: 4stig-FireRed_1480 # ... is there a formatting pattern to hide this?
-    environment:
-      ENV: CI
-
-    working_directory: ~/assignment-1-S3729065
-
+          username: $DOCKERHUB_USERNAME
+          password: $DOCKERHUB_PASSWORD
     steps:
       - checkout
-      - install_deps
+      - install_dependencies
+
       - run:
-          name: compile
+          name: Build and Compile
           command: |
-            npm build ./
-      #- browser-tools/install-firefox
-      #- browser-tools/install-geckodriver #NOTE(Daniel): install browsers for testing.
+            npm build
 
   pack:
     docker:
-      - image: cimg/node:lts # using cimg/node:15.11.0 as stated in the docs, documented as the preferred way.
+      - image: circleci/node:lts
+
     steps:
       - run:
-          name: compile
+          name: Compile
           command: |
-            npm i --save npm@latest
+            npm i npm@latest
 
-  integrity-test:
-      docker:
-        - image: cimg/node:lts
-        - image: mongo:4.0
-      environment:
-        APP_PORT: 8080
-      steps:
-        - run:
-            name: integration test
-            command: |
-              docker-compose up -d
-              npm run test-integration --prefix src/
-        - store_test_results:
-            path: integrity-results
+      - store_artifacts:
+          path: simpletodoapp-1.0.0.tgz
+
+  integrate:
+    docker:
+      - image: circleci/node:lts
+      - image: mongo:4.0
+
+    environment:
+      JEST_JUNIT_OUTPUT_DIR: test/unit
+
+    steps:
+      - run:
+          name: Integration Test
+          command: |
+            npm run test-integration
+
+      - store_test_results:
+          path: test/integration
 
 workflows:
-  build-pack-deploy:
+  buildNpack2jest:
     jobs:
+      - build
       - pack:
           requires:
             - build
-      - integrity-test
 
-
+      - integrate:
+          requires:
+            - build
+        
