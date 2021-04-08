@@ -41,6 +41,9 @@ jobs:
     docker:
       - image: circleci/node:lts
     steps:
+      - checkout
+      - install_dependencies
+      
       - run:
           name: Linting
           command: |
@@ -50,10 +53,13 @@ jobs:
     docker:
       - image: circleci/node:lts
     steps:
+      - checkout
+      - install_dependencies
+
       - run:
           name: Validate Code Coverage
           command: |
-            bash < (curl -s https://codecov.io/bash)
+            bash <(curl -s https://codecov.io/bash)
 
   scan-secure:
     docker:
