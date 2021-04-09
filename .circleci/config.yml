@@ -6,7 +6,7 @@ commands:
       - run:
           name: Install Dependencies
           command: |
-            npm ci --prefix src/
+            npm i --prefix src/
 
 jobs:
   build:
