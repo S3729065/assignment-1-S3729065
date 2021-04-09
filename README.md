@@ -22,7 +22,7 @@ First install the depdencies by running the following from the root directory:
 npm install --prefix src/
 ```
 
-To run this application locally you need to have an insatnce of MongoDB running. A docker-compose file has been provided in the root director that will run an insatnce of MongoDB in docker. TO start the MongoDB from the root direction run the following command:
+To run this application locally you need to have an instance of MongoDB running. A docker-compose file has been provided in the root director that will run an instance of MongoDB in docker. TO start the MongoDB from the root direction run the following command:
 
 ```
 docker-compose up -d
