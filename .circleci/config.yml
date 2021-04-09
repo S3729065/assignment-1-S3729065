@@ -51,7 +51,7 @@ jobs:
             npm run test-unit
 
       - store_test_results:
-          path: test/unit
+          path: test/unit --prefix src/
 
 workflows:
   buildNpack2jest:
