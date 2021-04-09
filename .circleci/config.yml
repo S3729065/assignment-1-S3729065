@@ -55,9 +55,14 @@ jobs:
 
     steps:
       - run:
+          name: Start Services (MongoDB; etc.)
+          command: |
+            npm run start --prefix src/
+
+      - run:
           name: Integration Test
           command: |
-            npm run test-integration
+            npm run test-integration --prefix src/
 
       - store_test_results:
           path: test/integration
