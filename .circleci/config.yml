@@ -1,147 +1,107 @@
 version: 2.1
 
 commands:
-  install_deps:
+  install_dependencies:
     steps:
       - run:
           name: Install Dependencies
           command: |
-            npm ci --prefix src/
+            npm i --prefix src/
 
 jobs:
   build:
     docker:
-      - image: cimg/node:lts
+      - image: circleci/node:lts
         auth:
-          username: thenewoldmodel # NOTE(Daniel): how do I hide these values?
-          password: 4stig-FireRed_1480 # ... is there a formatting pattern to hide this?
-    environment:
-      ENV: CI
-
-    working_directory: ~/assignment-1-S3729065
-
+          username: $DOCKERHUB_USERNAME
+          password: $DOCKERHUB_PASSWORD
     steps:
       - checkout
-      - install_deps
+      - install_dependencies
+
       - run:
-          name: compile
+          name: Build and Compile
           command: |
-            npm build ./
-      #- browser-tools/install-firefox
-      #- browser-tools/install-geckodriver #NOTE(Daniel): install browsers for testing.
+            npm build
 
   pack:
     docker:
-      - image: cimg/node:lts # using cimg/node:15.11.0 as stated in the docs, documented as the preferred way.
+      - image: circleci/node:lts
+
     steps:
       - run:
-          name: compile
+          name: Compile
           command: |
-            npm i --save npm@latest
-            npm build ./
+            npm i npm@latest
 
-  jest-test:
-    docker:
-      - image: cimg/node:lts # using cimg/node:15.11.0 as stated in the docs, documented as the preferred way.
-    
-    environment:
-      JEST_JUNIT_OUTPUT_DIR: test-output
-    
-    steps:
-      - run:
-          name: start test service
-          command: |
-            npm run start
-
-      - run:
-          name: unit test
-          command: |
-            npm run test-unit
-
-      - store_test_results:
-          path: jest-results
-
-  integrity-test:
-      docker:
-        - image: cimg/node:lts
-        - image: mongo:4.0
-      environment:
-        APP_PORT: 8080
-      steps:
-        - run:
-            name: integration test
-            command: |
-              npm run test-integration
-        - store_test_results:
-            path: integrity-results
-
-  e2e-test:
-    docker:
-      - image: cimg/node:lts
-    steps:
-    - run:
-        name: e2e test
-        command: |
-          npm run test-e2e
-    - store_test_results:
-        path: e2e-results
+      - store_artifacts:
+          path: simpletodoapp-1.0.0.tgz
 
   linting:
     docker:
-      - image: cimg/node:lts
+      - image: circleci/node:lts
     steps:
+      - checkout
+      - install_dependencies
+      
       - run:
-          name: linting
+          name: Linting
           command: |
-            npm run test-lint
-      - store_test_results:
-          path: linting-results
+            npm run test-lint --prefix src/
 
   code-coverage:
     docker:
-      - image: cimg/node:lts
+      - image: circleci/node:lts
     steps:
+      - checkout
+      - install_dependencies
+
       - run:
-          name: validate code coverage
+          name: Validate Code Coverage
           command: |
-            bash < (curl -s https://codecov.io/bash)
-      - store_test_results:
-          path: code-coverage-results
+            bash <(curl -s https://codecov.io/bash)
 
   scan-secure:
     docker:
-      - image: cimg/node:lts
+      - image: circle/node:lts
     steps:
       - checkout
-      - install_deps
+      - install_dependencies
 
       - run:
-          name: install node scan
+          name: Install Node Scan
           command: |
             sudo apt update
             sudo apt install python3-pip
             pip3 install nodejsscan
       - run:
-          name: execute node scan
+          name: Execute Node Scan
           command: |
-            nodejsscan -d ./ -o outputs/sast/nodejs-scan-report.json
+            nodejsscan -o nodejsscan-report.json
 
       - run:
-          name: parse report
+          name: Parse Report
           command: |
             exit $(cat sast-output.json | jq .total_count.sec)
       - store_artifacts:
-          path: outputs/sast/
+          path: ./sast-parse-report.tgz
 
 workflows:
   build-pack-deploy:
     jobs:
       - build
-      - pack
-      - jest-test
-      - integrity-test
-      - e2e-test
-      - linting
-      - code-coverage
-      - scan-secure
+      - pack:
+          requires:
+            - build
 
+      - linting:
+          requires:
+            - pack
+
+      - code-coverage:
+          requires:
+            - pack
+
+      - scan-secure:
+          requires:
+            - pack
