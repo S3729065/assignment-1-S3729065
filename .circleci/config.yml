@@ -49,6 +49,9 @@ jobs:
       JEST_JUNIT_OUTPUT_DIR: test/unit
 
     steps:
+      - checkout
+      - install_dependencies
+
       - run:
           name: Start Services (MongoDB; etc.)
           command: |
