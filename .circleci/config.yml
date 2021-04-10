@@ -43,6 +43,7 @@ jobs:
   e2e-test:
     docker:
       - image: circleci/node:lts
+      - image: mongo:4.0
     steps:
     - run:
         name: Docker Start-up
