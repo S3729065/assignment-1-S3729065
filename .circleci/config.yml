@@ -47,6 +47,7 @@ jobs:
     - run:
         name: Docker Start-up
         command: |
+          ls -a
           docker-compose up -d
 
     - run:
@@ -57,7 +58,7 @@ jobs:
     - run:
         name: CHMOD into Scripts folder
         command: |
-          echo "ls"
+          ls -a
           chmod +x scripts/e2e-ci.sh
           ./scripts/e2e-ci.sh
 
