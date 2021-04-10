@@ -46,11 +46,6 @@ jobs:
       - image: mongo:4.0
     steps:
     - run:
-        name: Docker Start-up
-        command: |
-          docker-compose up -d
-
-    - run:
         name: Start and Run MongoDB
         command: |
           npm run start --prefix src/
