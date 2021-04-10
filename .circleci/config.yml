@@ -76,4 +76,5 @@ workflows:
       - integrate:
           requires:
             - build
+            - pack
         
