@@ -47,7 +47,8 @@ jobs:
     - run:
         name: CHMOD into Scripts folder
         command: |
-          chmod +x scripts/e2e-ci.sh ./scripts/e2e-ci.sh
+          chmod +x scripts/e2e-ci.sh
+          ./scripts/e2e-ci.sh
 
     - run:
         name: E2E Test
