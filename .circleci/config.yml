@@ -6,7 +6,7 @@ commands:
       - run:
           name: Install Dependencies
           command: |
-            npm ci --prefix src/
+            npm i --prefix src/
 
 jobs:
   build:
@@ -33,11 +33,6 @@ jobs:
       - install_dependencies
 
       - run:
-          name: Start Test Service
-          command: |
-            npm run start
-
-      - run:
           name: Compile
           command: |
             npm i npm@latest
@@ -49,6 +44,11 @@ jobs:
     docker:
       - image: circleci/node:lts
     steps:
+    - run:
+        name: CHMOD into Scripts folder
+        command: |
+          chmod +x scripts/e2e-ci.sh ./scripts/e2e-ci.sh
+
     - run:
         name: E2E Test
         command: |
