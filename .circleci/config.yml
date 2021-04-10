@@ -75,4 +75,5 @@ workflows:
       - e2e-test:
           requires:
             - build
+            - pack
         
