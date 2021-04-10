@@ -29,6 +29,9 @@ jobs:
       - image: circleci/node:lts
 
     steps:
+      - checkout
+      - install_dependencies
+
       - run:
           name: Compile
           command: |
@@ -45,6 +48,9 @@ jobs:
       JEST_JUNIT_OUTPUT_DIR: test/unit
 
     steps:
+      - checkout
+      - install_dependencies
+
       - run:
           name: Unit Test with Jest JUnit
           command: |
@@ -64,4 +70,5 @@ workflows:
       - jest:
           requires:
             - build
+            - pack
         
