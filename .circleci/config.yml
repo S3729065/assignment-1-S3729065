@@ -45,11 +45,15 @@ jobs:
       - image: circleci/node:lts
     steps:
     - run:
+        name: Docker Start-up
+        command: |
+          docker-compose up -d
+
+    - run:
         name: Start and Run MongoDB
         command: |
           npm run start --prefix src/
           
-
     - run:
         name: CHMOD into Scripts folder
         command: |
