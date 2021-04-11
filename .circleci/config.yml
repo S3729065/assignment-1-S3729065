@@ -56,6 +56,55 @@ jobs:
       - store_test_results:
           path: test/unit
 
+  integrate:
+    docker:
+      - image: circleci/node:lts
+      - image: mongo:4.0
+
+    environment:
+      JEST_JUNIT_OUTPUT_DIR: test/unit
+
+    steps:
+      - checkout
+      - install_dependencies
+
+      - run:
+          name: Start Services (MongoDB; etc.)
+          command: |
+            npm run start --prefix src/
+
+      - run:
+          name: Integration Test
+          command: |
+            npm run test-integration --prefix src/
+
+      - store_test_results:
+          path: test/integration
+
+  e2e-test:
+    docker:
+      - image: circleci/node:lts
+      - image: mongo:4.0
+    steps:
+    - checkout
+    - install_dependencies
+
+    - run:
+        name: Start and Run MongoDB
+        command: |
+          npm run start --prefix src/
+          
+    - run:
+        name: CHMOD into Scripts folder
+        command: |
+          chmod +x scripts/e2e-ci.sh
+          ./scripts/e2e-ci.sh
+
+    - run:
+        name: E2E Test
+        command: |
+          npm run test-e2e --prefix src/
+
   linting:
     docker:
       - image: circleci/node:lts
@@ -114,6 +163,14 @@ workflows:
             - build
 
       - jest:
+          requires:
+            - pack
+
+      - integrate:
+          requires:
+            - pack
+
+      - e2e-test:
           requires:
             - pack
 
