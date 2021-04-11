@@ -86,10 +86,14 @@ jobs:
           when: on_fail
           command: |
             echo "Integration test has failed, trying again with new NPM installation and command redirection"
+            timeout 5m
             npm i --prefix src/
             npm build
-            npm run jest --ci test/unit
-            npm run DB_URI=mongodb://localhost:27017/tododb SESSION_SECRET=secret jest --ci test/integration --forceExit
+            npm run test-unit --prefix src/
+            npm run start --prefix src/
+            npm run test-integration --prefix src/
+            sleep 1s
+            exit 1
 
 
   e2e-test:
@@ -121,10 +125,14 @@ jobs:
         when: on_fail
         command: |
           echo "Integration test has failed, trying again with new NPM installation and command redirection"
+          timeout 5m
           npm i --prefix src/
           npm build
-          npm run jest --ci test/unit
-          DB_URI=mongodb://db:27017/tododb npx jest --config={} --preset=\"@qawolf/jest-plugin\" --rootDir=.qawolf --testTimeout=60000 --runInBand --forceExit
+          npm run test-unit --prefix src/
+          nom run start --prefix src/
+          npm run test-e2e --prefix src/
+          sleep 1s
+          exit 1
 
   linting:
     docker:

@@ -119,6 +119,23 @@ Jest-JUnit's environment is: "JEST_JUNIT_OUTPUT_DIR: test/unit" following the "p
 
 _"npm run test-unit --prefix src/"_ is run in the "jest" job. This passed.
 
+### Integration Testing
+The job run step written as: "when: on_failure" does a series of commands: 
+	echo "Failed. Now executing commands..."
+	timeout 5m
+	npm i --prefix src/
+	npm build
+	npm run test-unit --prefix src/
+	npm run start --prefix src/
+	npm run test-integration --prefix src
+	sleep 1s
+	exit 1
+
+### E2E Testing
+
+For E2E testing, I also did the same for its job's on_failure step, but replace "npm run test-integration --prefix src/" with:
+"npm run test-e2e --prefix src/"
+
 ### Linting
 
 Linting is similar to the other jobs, and its only running command is:
