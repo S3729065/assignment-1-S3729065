@@ -81,6 +81,17 @@ jobs:
       - store_test_results:
           path: test/integration
 
+      - run:
+          name: On Failure of Integration test, do
+          when: on_fail
+          command: |
+            echo "Integration test has failed, trying again with new NPM installation and command redirection"
+            npm i --prefix src/
+            npm build
+            npm run jest --ci test/unit
+            npm run DB_URI=mongodb://localhost:27017/tododb SESSION_SECRET=secret jest --ci test/integration --forceExit
+
+
   e2e-test:
     docker:
       - image: circleci/node:lts
@@ -104,6 +115,16 @@ jobs:
         name: E2E Test
         command: |
           npm run test-e2e --prefix src/
+
+    - run:
+        name: On Failure for E2E test, do
+        when: on_fail
+        command: |
+          echo "Integration test has failed, trying again with new NPM installation and command redirection"
+          npm i --prefix src/
+          npm build
+          npm run jest --ci test/unit
+          DB_URI=mongodb://db:27017/tododb npx jest --config={} --preset=\"@qawolf/jest-plugin\" --rootDir=.qawolf --testTimeout=60000 --runInBand --forceExit
 
   linting:
     docker:
@@ -129,30 +150,30 @@ jobs:
           command: |
             bash <(curl -s https://codecov.io/bash)
 
-  # scan-secure:
-  #   docker:
-  #     - image: circle/node:lts
-  #   steps:
-  #     - checkout
-  #     - install_dependencies
+  scan-secure:
+    docker:
+      - image: circle/node:lts
+    steps:
+      - checkout
+      - install_dependencies
 
-  #     - run:
-  #         name: Install Node Scan
-  #         command: |
-  #           sudo apt update
-  #           sudo apt install python3-pip
-  #           pip3 install nodejsscan
-  #     - run:
-  #         name: Execute Node Scan
-  #         command: |
-  #           nodejsscan -o nodejsscan-report.json
+      - run:
+          name: Install Node Scan
+          command: |
+            sudo apt update
+            sudo apt install python3-pip
+            pip3 install nodejsscan
+      - run:
+          name: Execute Node Scan
+          command: |
+            nodejsscan -o nodejsscan-report.json
 
-  #     - run:
-  #         name: Parse Report
-  #         command: |
-  #           exit $(cat sast-output.json | jq .total_count.sec)
-  #     - store_artifacts:
-  #         path: ./sast-parse-report.tgz
+      - run:
+          name: Parse Report
+          command: |
+            exit $(cat sast-output.json | jq .total_count.sec)
+      - store_artifacts:
+          path: ./sast-parse-report.tgz
 
 workflows:
   build-pack-deploy:
@@ -168,10 +189,12 @@ workflows:
 
       - integrate:
           requires:
+            - jest
             - pack
 
       - e2e-test:
           requires:
+            - jest
             - pack
 
       - linting:
@@ -182,6 +205,6 @@ workflows:
           requires:
             - pack
 
-      # - scan-secure:
-      #     requires:
-      #       - pack
+      - scan-secure:
+          requires:
+            - pack
