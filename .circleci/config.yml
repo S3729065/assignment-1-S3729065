@@ -37,6 +37,25 @@ jobs:
       - store_artifacts:
           path: simpletodoapp-1.0.0.tgz
 
+  jest:
+    docker:
+      - image: circleci/node:lts
+
+    environment:
+      JEST_JUNIT_OUTPUT_DIR: test/unit
+
+    steps:
+      - checkout
+      - install_dependencies
+
+      - run:
+          name: Unit Test with Jest JUnit
+          command: |
+            npm run test-unit --prefix src/
+
+      - store_test_results:
+          path: test/unit
+
   linting:
     docker:
       - image: circleci/node:lts
@@ -61,30 +80,30 @@ jobs:
           command: |
             bash <(curl -s https://codecov.io/bash)
 
-  scan-secure:
-    docker:
-      - image: circle/node:lts
-    steps:
-      - checkout
-      - install_dependencies
+  # scan-secure:
+  #   docker:
+  #     - image: circle/node:lts
+  #   steps:
+  #     - checkout
+  #     - install_dependencies
 
-      - run:
-          name: Install Node Scan
-          command: |
-            sudo apt update
-            sudo apt install python3-pip
-            pip3 install nodejsscan
-      - run:
-          name: Execute Node Scan
-          command: |
-            nodejsscan -o nodejsscan-report.json
+  #     - run:
+  #         name: Install Node Scan
+  #         command: |
+  #           sudo apt update
+  #           sudo apt install python3-pip
+  #           pip3 install nodejsscan
+  #     - run:
+  #         name: Execute Node Scan
+  #         command: |
+  #           nodejsscan -o nodejsscan-report.json
 
-      - run:
-          name: Parse Report
-          command: |
-            exit $(cat sast-output.json | jq .total_count.sec)
-      - store_artifacts:
-          path: ./sast-parse-report.tgz
+  #     - run:
+  #         name: Parse Report
+  #         command: |
+  #           exit $(cat sast-output.json | jq .total_count.sec)
+  #     - store_artifacts:
+  #         path: ./sast-parse-report.tgz
 
 workflows:
   build-pack-deploy:
@@ -94,6 +113,10 @@ workflows:
           requires:
             - build
 
+      - jest:
+          requires:
+            - pack
+
       - linting:
           requires:
             - pack
@@ -102,6 +125,6 @@ workflows:
           requires:
             - pack
 
-      - scan-secure:
-          requires:
-            - pack
+      # - scan-secure:
+      #     requires:
+      #       - pack
