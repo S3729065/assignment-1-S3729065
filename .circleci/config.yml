@@ -1,13 +1,209 @@
 version: 2.1
 
+commands:
+  install_dependencies:
+    steps:
+      - run:
+          name: Install Dependencies
+          command: |
+            npm i --prefix src/
+
 jobs:
-  ci-build:
+  build:
+    docker:
+      - image: circleci/node:lts
+        auth:
+          username: $DOCKERHUB_USERNAME
+          password: $DOCKERHUB_PASSWORD
+    steps:
+      - checkout
+      - install_dependencies
+
+      - run:
+          name: Build and Compile
+          command: |
+            npm build
+
+  pack:
+    docker:
+      - image: circleci/node:lts
+
+    steps:
+      - run:
+          name: Compile
+          command: |
+            npm i npm@latest
+
+      - store_artifacts:
+          path: simpletodoapp-1.0.0.tgz
+
+  jest:
+    docker:
+      - image: circleci/node:lts
+
+    environment:
+      JEST_JUNIT_OUTPUT_DIR: test/unit
+
+    steps:
+      - checkout
+      - install_dependencies
+
+      - run:
+          name: Unit Test with Jest JUnit
+          command: |
+            npm run test-unit --prefix src/
+
+      - store_test_results:
+          path: test/unit
+
+  integrate:
+    docker:
+      - image: circleci/node:lts
+      - image: mongo:4.0
+
+    environment:
+      JEST_JUNIT_OUTPUT_DIR: test/unit
+
+    steps:
+      - checkout
+      - install_dependencies
+
+      - run:
+          name: Start Services (MongoDB; etc.)
+          command: |
+            npm run start --prefix src/
+
+      - run:
+          name: Integration Test
+          command: |
+            npm run test-integration --prefix src/
+
+      - store_test_results:
+          path: test/integration
+
+      - run:
+          name: On Failure of Integration test, do
+          when: on_fail
+          command: |
+            echo "Integration test has failed, trying again with new NPM installation and command redirection"
+            npm i --prefix src/
+            npm build
+            npm run jest --ci test/unit
+            npm run DB_URI=mongodb://localhost:27017/tododb SESSION_SECRET=secret jest --ci test/integration --forceExit
+
+
+  e2e-test:
+    docker:
+      - image: circleci/node:lts
+      - image: mongo:4.0
+    steps:
+    - checkout
+    - install_dependencies
+
+    - run:
+        name: Start and Run MongoDB
+        command: |
+          npm run start --prefix src/
+          
+    - run:
+        name: CHMOD into Scripts folder
+        command: |
+          chmod +x scripts/e2e-ci.sh
+          ./scripts/e2e-ci.sh
+
+    - run:
+        name: E2E Test
+        command: |
+          npm run test-e2e --prefix src/
+
+    - run:
+        name: On Failure for E2E test, do
+        when: on_fail
+        command: |
+          echo "Integration test has failed, trying again with new NPM installation and command redirection"
+          npm i --prefix src/
+          npm build
+          npm run jest --ci test/unit
+          DB_URI=mongodb://db:27017/tododb npx jest --config={} --preset=\"@qawolf/jest-plugin\" --rootDir=.qawolf --testTimeout=60000 --runInBand --forceExit
+
+  linting:
     docker:
       - image: circleci/node:lts
     steps:
       - checkout
+      - install_dependencies
+      
+      - run:
+          name: Linting
+          command: |
+            npm run test-lint --prefix src/
+
+  code-coverage:
+    docker:
+      - image: circleci/node:lts
+    steps:
+      - checkout
+      - install_dependencies
+
+      - run:
+          name: Validate Code Coverage
+          command: |
+            bash <(curl -s https://codecov.io/bash)
+
+  scan-secure:
+    docker:
+      - image: circle/node:lts
+    steps:
+      - checkout
+      - install_dependencies
+
+      - run:
+          name: Install Node Scan
+          command: |
+            sudo apt update
+            sudo apt install python3-pip
+            pip3 install nodejsscan
+      - run:
+          name: Execute Node Scan
+          command: |
+            nodejsscan -o nodejsscan-report.json
+
+      - run:
+          name: Parse Report
+          command: |
+            exit $(cat sast-output.json | jq .total_count.sec)
+      - store_artifacts:
+          path: ./sast-parse-report.tgz
 
 workflows:
-  build-and-packge:
+  build-pack-deploy:
     jobs:
-      - ci-build
+      - build
+      - pack:
+          requires:
+            - build
+
+      - jest:
+          requires:
+            - pack
+
+      - integrate:
+          requires:
+            - jest
+
+      - e2e-test:
+          requires:
+            - jest
+
+      - linting:
+          requires:
+            - build
+            - pack
+
+      - code-coverage:
+          requires:
+            - linting
+
+      - scan-secure:
+          requires:
+            - code-coverage
