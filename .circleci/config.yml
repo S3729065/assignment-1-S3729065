@@ -190,21 +190,20 @@ workflows:
       - integrate:
           requires:
             - jest
-            - pack
 
       - e2e-test:
           requires:
             - jest
-            - pack
 
       - linting:
           requires:
+            - build
             - pack
 
       - code-coverage:
           requires:
-            - pack
+            - linting
 
       - scan-secure:
           requires:
-            - pack
+            - code-coverage
